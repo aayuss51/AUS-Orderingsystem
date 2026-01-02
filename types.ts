@@ -25,6 +25,8 @@ export enum OrderStatus {
 export interface Order {
   id: string;
   userId: string;
+  userName?: string;
+  userEmail?: string;
   items: CartItem[];
   total: number;
   status: OrderStatus;

@@ -1,5 +1,5 @@
 {
-  "name": "LuxeStay Hotel Ordering System",
+  "name": "Ramrosoft demo",
   "description": "A comprehensive hotel ordering system featuring an AI-enhanced menu, real-time order tracking, QR code scanning, and an admin dashboard.",
   "requestFramePermissions": [
     "camera"

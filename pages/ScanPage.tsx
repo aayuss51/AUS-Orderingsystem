@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, QrCode, ShieldCheck, ArrowRight, X } from 'lucide-react';
+import { Camera, QrCode, ShieldCheck, ArrowRight, X, Check, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 
@@ -10,6 +10,8 @@ interface ScanPageProps {
 
 const ScanPage: React.FC<ScanPageProps> = ({ setUserTable }) => {
   const [isScanning, setIsScanning] = useState(false);
+  const [pendingTable, setPendingTable] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const qrScannerRef = useRef<Html5Qrcode | null>(null);
@@ -19,13 +21,22 @@ const ScanPage: React.FC<ScanPageProps> = ({ setUserTable }) => {
     // Cleanup scanner on unmount
     return () => {
       if (qrScannerRef.current) {
-        qrScannerRef.current.stop().catch(console.error);
+        const scanner = qrScannerRef.current;
+        // Check if scanner is actually running before stopping
+        // State 2 = SCANNING
+        if (scanner.getState() === 2) {
+          scanner.stop().catch((err) => {
+            console.debug("Cleanup stop error (ignorable):", err);
+          });
+        }
       }
     };
   }, []);
 
   const startScanner = async () => {
     setIsScanning(true);
+    setShowConfirmation(false);
+    setPendingTable(null);
     setError(null);
     
     // Give DOM a moment to render the scanner div
@@ -51,6 +62,7 @@ const ScanPage: React.FC<ScanPageProps> = ({ setUserTable }) => {
         console.error("Scanner Error:", err);
         setError("Could not access camera. Please check permissions.");
         setIsScanning(false);
+        qrScannerRef.current = null;
       }
     }, 100);
   };
@@ -58,18 +70,24 @@ const ScanPage: React.FC<ScanPageProps> = ({ setUserTable }) => {
   const stopScanner = async () => {
     if (qrScannerRef.current) {
       try {
-        await qrScannerRef.current.stop();
-        qrScannerRef.current = null;
+        const scanner = qrScannerRef.current;
+        // Only stop if the scanner is currently scanning (State 2)
+        if (scanner.getState() === 2) {
+          await scanner.stop();
+        }
       } catch (err) {
-        console.error("Stop Error:", err);
+        console.debug("Stop Error (handled):", err);
+      } finally {
+        qrScannerRef.current = null;
+        setIsScanning(false);
       }
+    } else {
+      setIsScanning(false);
     }
-    setIsScanning(false);
   };
 
   const handleScanSuccess = (decodedText: string) => {
     // Logic to extract table number. 
-    // Assuming QR contains "Table 5" or just "5" or a full URL like "https://luxestay.com/table/5"
     let tableId = decodedText;
     
     // Basic extraction if it looks like a URL
@@ -78,13 +96,26 @@ const ScanPage: React.FC<ScanPageProps> = ({ setUserTable }) => {
     }
     
     // Prepend 'Table ' if it's just a number
-    if (!isNaN(Number(tableId))) {
+    if (!isNaN(Number(tableId)) && tableId.trim() !== "") {
       tableId = `Table ${tableId}`;
     }
 
-    setUserTable(tableId);
+    setPendingTable(tableId);
+    setShowConfirmation(true);
     stopScanner();
-    navigate('/menu');
+  };
+
+  const handleConfirmTable = () => {
+    if (pendingTable) {
+      setUserTable(pendingTable);
+      navigate('/menu');
+    }
+  };
+
+  const handleRescan = () => {
+    setShowConfirmation(false);
+    setPendingTable(null);
+    startScanner();
   };
 
   const handleManualSelection = (table: string) => {
@@ -95,7 +126,36 @@ const ScanPage: React.FC<ScanPageProps> = ({ setUserTable }) => {
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center px-4 py-20">
       <div className="max-w-md w-full text-center">
-        {!isScanning ? (
+        {showConfirmation ? (
+          <div className="animate-in fade-in zoom-in-95 duration-500 bg-white text-slate-900 p-8 rounded-[2.5rem] shadow-2xl border border-white/20">
+            <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Check size={40} />
+            </div>
+            <h1 className="font-serif text-3xl mb-2">Table Detected</h1>
+            <p className="text-slate-500 mb-8">We've identified your location as:</p>
+            
+            <div className="bg-slate-100 py-6 rounded-2xl mb-10">
+              <span className="text-5xl font-bold tracking-tight text-indigo-600">{pendingTable}</span>
+            </div>
+            
+            <h2 className="text-xl font-bold mb-8">Is this your table?</h2>
+            
+            <div className="space-y-4">
+              <button 
+                onClick={handleConfirmTable}
+                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
+              >
+                Yes, Start Ordering
+              </button>
+              <button 
+                onClick={handleRescan}
+                className="w-full py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-200 transition-all"
+              >
+                <RefreshCw size={18} /> No, Scan Again
+              </button>
+            </div>
+          </div>
+        ) : !isScanning ? (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="mb-12">
               <div className="w-20 h-20 bg-indigo-500/20 text-indigo-400 rounded-3xl flex items-center justify-center mx-auto mb-6">

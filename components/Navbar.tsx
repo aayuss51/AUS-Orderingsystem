@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Menu, User, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, Menu, User, ShieldCheck, History } from 'lucide-react';
 import { User as UserType } from '../types';
 
 interface NavbarProps {
@@ -28,7 +28,7 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, user, onLogout }) => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="font-serif text-2xl font-bold text-slate-900 tracking-tight">LUXESTAY</span>
+              <span className="font-serif text-2xl font-bold text-slate-900 tracking-tight uppercase">RAMROSOFT</span>
             </Link>
           </div>
 
@@ -44,6 +44,17 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, user, onLogout }) => {
                 {link.name}
               </Link>
             ))}
+            
+            {user && (
+              <Link 
+                to="/history" 
+                className={`text-sm font-medium flex items-center gap-1.5 ${
+                  location.pathname === '/history' ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'
+                } transition-colors`}
+              >
+                <History size={16} /> My Orders
+              </Link>
+            )}
             
             {user?.isAdmin && (
               <Link to="/admin" className="text-sm font-medium text-amber-600 hover:text-amber-700 flex items-center gap-1">
@@ -64,12 +75,15 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, user, onLogout }) => {
             
             <div className="hidden md:flex items-center gap-2">
               {user ? (
-                <button 
-                  onClick={onLogout}
-                  className="text-sm font-medium text-slate-500 hover:text-slate-900"
-                >
-                  Logout ({user.name})
-                </button>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{user.name}</span>
+                  <button 
+                    onClick={onLogout}
+                    className="text-sm font-medium text-red-500 hover:text-red-600"
+                  >
+                    Logout
+                  </button>
+                </div>
               ) : (
                 <Link to="/login" className="text-sm font-medium text-slate-500 hover:text-slate-900">
                   Login
@@ -100,9 +114,30 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, user, onLogout }) => {
               {link.name}
             </Link>
           ))}
+          {user && (
+            <Link 
+              to="/history" 
+              onClick={() => setIsMenuOpen(false)}
+              className="block py-2 text-base font-medium text-slate-500 hover:text-indigo-600"
+            >
+              My Orders
+            </Link>
+          )}
           {user?.isAdmin && (
             <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="block py-2 text-base font-medium text-amber-600">
               Admin Dashboard
+            </Link>
+          )}
+          {user ? (
+            <button 
+              onClick={() => { onLogout(); setIsMenuOpen(false); }}
+              className="block w-full text-left py-2 text-base font-medium text-red-500"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block py-2 text-base font-medium text-slate-500">
+              Login
             </Link>
           )}
         </div>

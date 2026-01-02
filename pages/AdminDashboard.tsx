@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { MenuItem, Order, OrderStatus, Category } from '../types';
-import { Plus, Edit2, Trash2, CheckCircle, Clock, Save, X, Sparkles, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle, Clock, Save, X, Sparkles, Loader2, Image as ImageIcon, User as UserIcon, Mail, Power, PowerOff } from 'lucide-react';
 import { generateMenuItemImage } from '../services/geminiService';
 
 interface AdminDashboardProps {
@@ -19,6 +19,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ menuItems, orders, onUp
 
   const handleDeleteItem = (id: string) => {
     onUpdateMenu(menuItems.filter(i => i.id !== id));
+  };
+
+  const handleToggleAvailability = (id: string) => {
+    onUpdateMenu(menuItems.map(i => i.id === id ? { ...i, isAvailable: !i.isAvailable } : i));
   };
 
   const handleGenerateAIImage = async () => {
@@ -102,15 +106,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ menuItems, orders, onUp
                   <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
                     <div>
                       <div className="flex items-center gap-3 mb-1">
-                        <span className="text-xl font-bold text-slate-900">Order #{order.id}</span>
+                        <span className="text-xl font-bold text-slate-900">Order #{order.id.split('-').pop()}</span>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${statusColors[order.status]}`}>
                           {statusIcons[order.status]} {order.status}
                         </span>
                       </div>
-                      <p className="text-slate-500 text-sm">Table: <span className="text-slate-900 font-semibold">{order.tableNumber}</span> • {new Date(order.createdAt).toLocaleTimeString()}</p>
+                      <p className="text-slate-500 text-sm">
+                        Location: <span className="text-slate-900 font-semibold">{order.tableNumber}</span> • {new Date(order.createdAt).toLocaleTimeString()}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-slate-900">${order.total.toFixed(2)}</p>
+                      <p className="text-2xl font-bold text-indigo-600">${order.total.toFixed(2)}</p>
                       <div className="flex gap-2 mt-4">
                         {order.status !== OrderStatus.DELIVERED && (
                           <>
@@ -137,17 +143,58 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ menuItems, orders, onUp
                       </div>
                     </div>
                   </div>
-                  <div className="bg-slate-50 rounded-2xl p-6">
-                    <ul className="space-y-3">
-                      {order.items.map((item, idx) => (
-                        <li key={idx} className="flex justify-between text-sm">
-                          <span className="text-slate-600 font-medium">
-                            <span className="text-slate-900 font-bold mr-2">{item.quantity}x</span> {item.name}
-                          </span>
-                          <span className="text-slate-400 italic">{item.category}</span>
-                        </li>
-                      ))}
-                    </ul>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Items Section */}
+                    <div className="bg-slate-50 rounded-2xl p-6">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Ordered Items</h4>
+                      <ul className="space-y-3">
+                        {order.items.map((item, idx) => (
+                          <li key={idx} className="flex justify-between text-sm">
+                            <span className="text-slate-600 font-medium">
+                              <span className="text-slate-900 font-bold mr-2">{item.quantity}x</span> {item.name}
+                            </span>
+                            <span className="text-slate-400 italic">{item.category}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Customer Section */}
+                    <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Customer Details</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 border border-slate-100">
+                            <UserIcon size={16} />
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">Name</p>
+                            <p className="text-sm font-bold text-slate-900">{order.userName || 'Guest Customer'}</p>
+                          </div>
+                        </div>
+                        {order.userEmail && (
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 border border-slate-100">
+                              <Mail size={16} />
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">Email</p>
+                              <p className="text-sm font-medium text-slate-600">{order.userEmail}</p>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 border border-slate-100">
+                            <Clock size={16} />
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">User ID</p>
+                            <p className="text-[10px] font-mono text-slate-400">{order.userId}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -235,16 +282,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ menuItems, orders, onUp
 
           <div className="grid grid-cols-1 gap-4">
             {menuItems.map(item => (
-              <div key={item.id} className="bg-white p-6 rounded-2xl border border-slate-100 flex items-center gap-6 group hover:border-slate-300 transition-colors">
-                <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
+              <div key={item.id} className={`bg-white p-6 rounded-2xl border flex items-center gap-6 group hover:border-slate-300 transition-colors ${!item.isAvailable ? 'border-red-100 bg-red-50/20' : 'border-slate-100'}`}>
+                <img src={item.image} alt={item.name} className={`w-16 h-16 rounded-xl object-cover ${!item.isAvailable ? 'grayscale opacity-50' : ''}`} />
                 <div className="flex-grow">
                   <div className="flex items-center gap-3">
-                    <h3 className="font-bold text-slate-900">{item.name}</h3>
+                    <h3 className={`font-bold ${!item.isAvailable ? 'text-slate-400' : 'text-slate-900'}`}>{item.name}</h3>
                     <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">{item.category}</span>
+                    {!item.isAvailable && <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Sold Out</span>}
                   </div>
                   <p className="text-slate-400 text-sm italic">${item.price.toFixed(2)}</p>
                 </div>
                 <div className="flex gap-2">
+                  <button 
+                    className={`p-2 transition-colors ${item.isAvailable ? 'text-emerald-500 hover:text-emerald-600' : 'text-slate-300 hover:text-red-500'}`}
+                    onClick={() => handleToggleAvailability(item.id)}
+                    title={item.isAvailable ? "Mark as Sold Out" : "Mark as Available"}
+                  >
+                    {item.isAvailable ? <Power size={18} /> : <PowerOff size={18} />}
+                  </button>
                   <button 
                     className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"
                     onClick={() => setEditingItem(item)}

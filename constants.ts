@@ -50,9 +50,9 @@ export const INITIAL_MENU: MenuItem[] = [
 ];
 
 export const HOTEL_INFO = {
-  name: "LuxeStay Grand Hotel",
+  name: "Ramrosoft Grand Hotel",
   address: "123 Elegance Blvd, Metropolitan City",
   phone: "+1 (555) 123-4567",
-  email: "concierge@luxestay.com",
-  about: "LuxeStay Grand Hotel represents the pinnacle of luxury and comfort. Established in 1924, we have hosted royalty, world leaders, and discerning travelers for a century, providing unparalleled service and exquisite culinary experiences."
+  email: "concierge@ramrosoft.com",
+  about: "Ramrosoft Grand Hotel represents the pinnacle of luxury and comfort. Established in 1924, we have hosted royalty, world leaders, and discerning travelers for a century, providing unparalleled service and exquisite culinary experiences."
 };

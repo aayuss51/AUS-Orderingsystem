@@ -10,6 +10,7 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import AdminDashboard from './pages/AdminDashboard';
 import LoginPage from './pages/LoginPage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
 import { MenuItem, CartItem, User, Order, OrderStatus } from './types';
 import { INITIAL_MENU } from './constants';
 
@@ -57,6 +58,8 @@ const App: React.FC = () => {
     const newOrder: Order = {
       id: `ORD-${Date.now()}`,
       userId: user?.id || 'guest',
+      userName: user?.name || 'Guest Customer',
+      userEmail: user?.email,
       items: [...cart],
       total,
       status: OrderStatus.PENDING,
@@ -105,6 +108,7 @@ const App: React.FC = () => {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/login" element={<LoginPage onLogin={setUser} />} />
+            <Route path="/history" element={<OrderHistoryPage orders={orders} user={user} />} />
             <Route 
               path="/admin" 
               element={
@@ -121,7 +125,7 @@ const App: React.FC = () => {
           </Routes>
         </main>
         <footer className="bg-slate-900 text-slate-400 py-8 text-center text-sm">
-          <p>© {new Date().getFullYear()} LuxeStay Grand Hotel. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Ramrosoft Demo. All rights reserved.</p>
         </footer>
       </div>
     </Router>

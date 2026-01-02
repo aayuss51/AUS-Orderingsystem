@@ -69,7 +69,7 @@ const AboutPage: React.FC = () => {
 
       <section className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="font-serif text-4xl mb-12">The LuxeStay Experience</h2>
+          <h2 className="font-serif text-4xl mb-12">The Ramrosoft Experience</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <img src="https://picsum.photos/seed/ex1/500/500" className="w-full aspect-square object-cover rounded-3xl" alt="Luxe 1" />
             <img src="https://picsum.photos/seed/ex2/500/500" className="w-full aspect-square object-cover rounded-3xl" alt="Luxe 2" />
