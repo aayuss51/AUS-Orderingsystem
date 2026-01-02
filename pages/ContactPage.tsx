@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, MessageCircle, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, ExternalLink } from 'lucide-react';
 import { HOTEL_INFO } from '../constants';
 
 const ContactPage: React.FC = () => {
@@ -14,13 +14,24 @@ const ContactPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen py-20">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-16">
-          <h1 className="font-serif text-5xl mb-4">Get in Touch</h1>
-          <p className="text-slate-500 max-w-2xl mx-auto text-lg">Whether you need a late-night feast or a personalized city tour, our concierge team is at your disposal 24/7.</p>
+    <div className="bg-slate-50 min-h-screen">
+      {/* Hero Header with Cafe Image */}
+      <section className="relative py-32 flex items-center justify-center overflow-hidden mb-12">
+        <img 
+          src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=1920&h=600" 
+          className="absolute inset-0 w-full h-full object-cover"
+          alt="Cozy Cafe Environment"
+        />
+        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[1px]"></div>
+        <div className="relative z-10 text-center px-4 max-w-4xl animate-in fade-in slide-in-from-top-4 duration-700">
+          <h1 className="font-serif text-5xl md:text-6xl text-white mb-4">Get in Touch</h1>
+          <p className="text-slate-200 max-w-2xl mx-auto text-lg md:text-xl font-light italic">
+            Whether you need a late-night feast or a personalized city tour, our concierge team is at your disposal 24/7.
+          </p>
         </div>
+      </section>
 
+      <div className="max-w-7xl mx-auto px-4 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-12">
           <div className="lg:col-span-1 space-y-8">
             <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
@@ -55,12 +66,15 @@ const ContactPage: React.FC = () => {
 
             <div className="bg-indigo-600 text-white p-8 rounded-3xl shadow-xl">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <MessageCircle size={24} /> Immediate Assistance?
+                <Phone size={24} /> Immediate Assistance?
               </h3>
-              <p className="text-indigo-100 mb-6">Dial '0' from your room phone for instant connection to our 5-star concierge desk.</p>
-              <button className="w-full py-3 bg-white text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition-colors">
-                Chat with Concierge
-              </button>
+              <p className="text-indigo-100 mb-6">Dial '0' from your room phone for instant connection to our 5-star concierge desk for any requests.</p>
+              <a 
+                href={`tel:${HOTEL_INFO.phone}`}
+                className="block w-full py-3 bg-white text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition-colors text-center"
+              >
+                Call Concierge Desk
+              </a>
             </div>
           </div>
 

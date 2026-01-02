@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { MenuItem, Category } from '../types';
-import { getAIPairingSuggestion } from '../services/geminiService';
-import { Sparkles, ShoppingBag, Search, X, Ban } from 'lucide-react';
+import { ShoppingBag, Search, X, Ban } from 'lucide-react';
 
 interface MenuPageProps {
   menuItems: MenuItem[];
@@ -12,8 +11,6 @@ interface MenuPageProps {
 const MenuPage: React.FC<MenuPageProps> = ({ menuItems, onAddToCart }) => {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [pairings, setPairings] = useState<Record<string, string>>({});
-  const [loadingPairing, setLoadingPairing] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const categories: (Category | 'All')[] = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Drinks', 'Desserts'];
@@ -37,14 +34,6 @@ const MenuPage: React.FC<MenuPageProps> = ({ menuItems, onAddToCart }) => {
                           item.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
-
-  const fetchPairing = async (item: MenuItem) => {
-    if (pairings[item.id]) return;
-    setLoadingPairing(item.id);
-    const suggestion = await getAIPairingSuggestion(item);
-    setPairings(prev => ({ ...prev, [item.id]: suggestion }));
-    setLoadingPairing(null);
-  };
 
   // Helper to highlight matching text in results
   const HighlightedText: React.FC<{ text: string; query: string }> = ({ text, query }) => {
@@ -203,31 +192,7 @@ const MenuPage: React.FC<MenuPageProps> = ({ menuItems, onAddToCart }) => {
                         </>
                       )}
                     </button>
-                    <button 
-                      disabled={!item.isAvailable}
-                      onClick={() => fetchPairing(item)}
-                      className={`p-2.5 rounded-xl transition-colors ${
-                        item.isAvailable 
-                        ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100' 
-                        : 'bg-slate-100 text-slate-300 cursor-not-allowed'
-                      }`}
-                      title="Get AI Pairing"
-                    >
-                      <Sparkles size={20} />
-                    </button>
                   </div>
-
-                  {item.isAvailable && pairings[item.id] && (
-                    <div className="mt-4 p-3 bg-indigo-50/50 rounded-lg text-xs text-indigo-800 italic animate-in fade-in slide-in-from-top-2">
-                      <span className="font-bold flex items-center gap-1 mb-1"><Sparkles size={12} /> AI Sommelier Recommendation:</span>
-                      {pairings[item.id]}
-                    </div>
-                  )}
-                  {item.isAvailable && loadingPairing === item.id && (
-                    <div className="mt-4 flex items-center gap-2 text-xs text-indigo-500 animate-pulse">
-                      <Sparkles size={12} className="animate-spin" /> Analyzing flavor profiles...
-                    </div>
-                  )}
                 </div>
               </div>
             ))}

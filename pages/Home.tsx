@@ -1,9 +1,8 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Star, Sparkles } from 'lucide-react';
+import { ChevronRight, Star, Clock, Utensils } from 'lucide-react';
 import { MenuItem } from '../types';
-import { getAIMenuDescription } from '../services/geminiService';
 
 interface HomeProps {
   menuItems: MenuItem[];
@@ -11,16 +10,7 @@ interface HomeProps {
 }
 
 const Home: React.FC<HomeProps> = ({ menuItems, onAddToCart }) => {
-  const [aiWelcome, setAiWelcome] = useState("Discover our handcrafted seasonal menu selections.");
   const featured = menuItems.slice(0, 3);
-
-  useEffect(() => {
-    const fetchWelcome = async () => {
-      const desc = await getAIMenuDescription("The Ultimate Luxury Dining Experience");
-      setAiWelcome(desc);
-    };
-    fetchWelcome();
-  }, []);
 
   return (
     <div className="flex flex-col">
@@ -37,7 +27,7 @@ const Home: React.FC<HomeProps> = ({ menuItems, onAddToCart }) => {
             Exquisite Taste, <br/>Room Service Reimagined
           </h1>
           <p className="text-lg md:text-xl text-slate-200 mb-8 font-light italic">
-            {aiWelcome}
+            Indulge in our collection of globally-inspired dishes, prepared by world-class chefs and delivered with uncompromising precision.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
@@ -64,21 +54,21 @@ const Home: React.FC<HomeProps> = ({ menuItems, onAddToCart }) => {
               <Star size={32} />
             </div>
             <h3 className="font-serif text-2xl mb-4">Michelin Star Chefs</h3>
-            <p className="text-slate-500">Every dish is prepared by award-winning culinary masters using the finest ingredients.</p>
+            <p className="text-slate-500">Every dish is prepared by award-winning culinary masters using the finest organic ingredients.</p>
           </div>
           <div className="text-center group">
             <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-              <Sparkles size={32} />
+              <Utensils size={32} />
             </div>
-            <h3 className="font-serif text-2xl mb-4">AI Recommendations</h3>
-            <p className="text-slate-500">Get personalized wine and side pairings suggested by our proprietary AI sommelier.</p>
+            <h3 className="font-serif text-2xl mb-4">Gourmet Selection</h3>
+            <p className="text-slate-500">A curated menu featuring both local delicacies and international favorites to suit every palate.</p>
           </div>
           <div className="text-center group">
             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-              <ChevronRight size={32} />
+              <Clock size={32} />
             </div>
             <h3 className="font-serif text-2xl mb-4">Swift Delivery</h3>
-            <p className="text-slate-500">Guaranteed room delivery within 30 minutes, or your signature cocktails are on us.</p>
+            <p className="text-slate-500">Our signature room service guarantees delivery within 30 minutes, ensuring your meal arrives at the perfect temperature.</p>
           </div>
         </div>
       </section>
