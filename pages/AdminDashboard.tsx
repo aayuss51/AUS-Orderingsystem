@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { MenuItem, Order, OrderStatus, Category } from '../types';
-import { Plus, Edit2, Trash2, CheckCircle, Clock, Save, X, Sparkles, Loader2, Image as ImageIcon, User as UserIcon, Mail, Power, PowerOff } from 'lucide-react';
+// Added MapPin to the imports from lucide-react
+import { Plus, Edit2, Trash2, CheckCircle, Clock, Save, X, Sparkles, Loader2, Image as ImageIcon, User as UserIcon, Mail, Power, PowerOff, Copy, Check, MapPin, Filter } from 'lucide-react';
 import { generateMenuItemImage } from '../services/geminiService';
 
 interface AdminDashboardProps {
@@ -13,9 +14,11 @@ interface AdminDashboardProps {
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ menuItems, orders, onUpdateMenu, onUpdateOrderStatus }) => {
   const [activeTab, setActiveTab] = useState<'orders' | 'menu'>('orders');
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | 'All'>('All');
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [newItem, setNewItem] = useState<Partial<MenuItem>>({ category: 'Lunch', isAvailable: true });
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleDeleteItem = (id: string) => {
     onUpdateMenu(menuItems.filter(i => i.id !== id));
@@ -23,6 +26,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ menuItems, orders, onUp
 
   const handleToggleAvailability = (id: string) => {
     onUpdateMenu(menuItems.map(i => i.id === id ? { ...i, isAvailable: !i.isAvailable } : i));
+  };
+
+  const handleCopyEmail = (email: string) => {
+    navigator.clipboard.writeText(email);
+    setCopiedId(email);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleGenerateAIImage = async () => {
@@ -73,9 +82,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ menuItems, orders, onUp
     [OrderStatus.CANCELLED]: <Clock size={14} />,
   };
 
+  const filteredOrders = orders.filter(order => 
+    statusFilter === 'All' || order.status === statusFilter
+  );
+
+  const getStatusCount = (status: OrderStatus | 'All') => {
+    if (status === 'All') return orders.length;
+    return orders.filter(o => o.status === status).length;
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="flex justify-between items-center mb-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
         <h1 className="font-serif text-4xl">Admin Dashboard</h1>
         <div className="flex bg-slate-100 p-1 rounded-xl">
           <button 
@@ -94,104 +112,183 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ menuItems, orders, onUp
       </div>
 
       {activeTab === 'orders' ? (
-        <div className="space-y-6">
-          {orders.length === 0 ? (
-            <div className="bg-white p-20 text-center rounded-3xl border border-slate-100 text-slate-400 italic">
-              No orders have been placed yet.
+        <div className="space-y-8">
+          {/* Order Status Filters */}
+          <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="px-4 py-2 text-slate-400">
+              <Filter size={18} />
+            </div>
+            {(['All', OrderStatus.PENDING, OrderStatus.PREPARING, OrderStatus.DELIVERED, OrderStatus.CANCELLED] as const).map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                  statusFilter === status
+                  ? 'bg-slate-900 text-white shadow-md'
+                  : 'text-slate-500 hover:bg-slate-50'
+                }`}
+              >
+                {status}
+                <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${
+                  statusFilter === status ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'
+                }`}>
+                  {getStatusCount(status)}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {filteredOrders.length === 0 ? (
+            <div className="bg-white p-24 text-center rounded-[2.5rem] border border-slate-100 shadow-sm">
+              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+                <Filter size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">
+                {orders.length === 0 ? "No orders yet" : `No ${statusFilter.toLowerCase()} orders`}
+              </h3>
+              <p className="text-slate-500 italic max-w-xs mx-auto">
+                {orders.length === 0 
+                  ? "When customers place orders, they will appear here in real-time."
+                  : `There are currently no orders marked as ${statusFilter}. Check other categories or wait for new incoming requests.`}
+              </p>
+              {statusFilter !== 'All' && (
+                <button 
+                  onClick={() => setStatusFilter('All')}
+                  className="mt-8 text-sm font-bold text-indigo-600 hover:underline"
+                >
+                  View all orders
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6">
-              {orders.map((order) => (
-                <div key={order.id} className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                  <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
+              {filteredOrders.map((order) => (
+                <div key={order.id} className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex flex-wrap justify-between items-start gap-4 mb-8">
                     <div>
                       <div className="flex items-center gap-3 mb-1">
                         <span className="text-xl font-bold text-slate-900">Order #{order.id.split('-').pop()}</span>
-                        <span className="text-slate-400 font-medium">|</span>
-                        <span className="text-slate-700 font-semibold">{order.userName || 'Guest'}</span>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${statusColors[order.status]}`}>
                           {statusIcons[order.status]} {order.status}
                         </span>
                       </div>
                       <p className="text-slate-500 text-sm">
-                        Location: <span className="text-slate-900 font-semibold">{order.tableNumber}</span> • {new Date(order.createdAt).toLocaleTimeString()}
+                        Placed: <span className="text-slate-900 font-semibold">{new Date(order.createdAt).toLocaleString()}</span>
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-indigo-600">${order.total.toFixed(2)}</p>
-                      <div className="flex gap-2 mt-4">
-                        {order.status !== OrderStatus.DELIVERED && (
-                          <>
-                            <button 
-                              onClick={() => onUpdateOrderStatus(order.id, OrderStatus.PREPARING)}
-                              className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors"
-                            >
-                              Start Preparing
-                            </button>
-                            <button 
-                              onClick={() => onUpdateOrderStatus(order.id, OrderStatus.DELIVERED)}
-                              className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-bold hover:bg-emerald-100 transition-colors"
-                            >
-                              Mark Delivered
-                            </button>
-                          </>
-                        )}
-                        <button 
-                          onClick={() => onUpdateOrderStatus(order.id, OrderStatus.CANCELLED)}
-                          className="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Amount</p>
+                      <p className="text-3xl font-bold text-indigo-600">${order.total.toFixed(2)}</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Items Section */}
-                    <div className="bg-slate-50 rounded-2xl p-6">
+                    <div className="lg:col-span-1 bg-slate-50 rounded-2xl p-6">
                       <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Ordered Items</h4>
-                      <ul className="space-y-3">
+                      <ul className="space-y-4">
                         {order.items.map((item, idx) => (
-                          <li key={idx} className="flex justify-between text-sm">
-                            <span className="text-slate-600 font-medium">
-                              <span className="text-slate-900 font-bold mr-2">{item.quantity}x</span> {item.name}
-                            </span>
-                            <span className="text-slate-400 italic">{item.category}</span>
+                          <li key={idx} className="flex justify-between items-center text-sm">
+                            <div className="flex items-center gap-3">
+                              <span className="w-6 h-6 bg-white border border-slate-200 text-slate-900 rounded-md flex items-center justify-center text-[10px] font-bold">
+                                {item.quantity}
+                              </span>
+                              <span className="text-slate-700 font-medium">{item.name}</span>
+                            </div>
+                            <span className="text-slate-400 text-xs italic">${item.price.toFixed(2)} ea</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    {/* Customer Section */}
-                    <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Customer Details</h4>
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 border border-slate-100">
-                            <UserIcon size={16} />
+                    {/* Customer Details Section */}
+                    <div className="lg:col-span-1 bg-indigo-50/30 rounded-2xl p-6 border border-indigo-100/50">
+                      <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-4">Customer Profile</h4>
+                      <div className="space-y-5">
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-100">
+                            <UserIcon size={20} />
                           </div>
                           <div>
-                            <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">Full Name</p>
-                            <p className="text-sm font-bold text-slate-900">{order.userName || 'Guest Customer'}</p>
+                            <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-tight">Full Name</p>
+                            <p className="text-sm font-bold text-slate-900 leading-tight">{order.userName || 'Guest Customer'}</p>
+                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">ID: {order.userId}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 border border-slate-100">
-                            <Mail size={16} />
+
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-100">
+                            <Mail size={20} />
                           </div>
-                          <div>
-                            <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">Email Address</p>
-                            <p className="text-sm font-medium text-slate-600">{order.userEmail || 'No email provided'}</p>
+                          <div className="flex-grow min-w-0">
+                            <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-tight">Email Address</p>
+                            <div className="flex items-center gap-2 group">
+                              <p className="text-sm font-medium text-slate-600 truncate">
+                                {order.userEmail || 'Not provided'}
+                              </p>
+                              {order.userEmail && (
+                                <button 
+                                  onClick={() => handleCopyEmail(order.userEmail!)}
+                                  className="text-indigo-400 hover:text-indigo-600 transition-colors"
+                                  title="Copy Email"
+                                >
+                                  {copiedId === order.userEmail ? <Check size={14} /> : <Copy size={14} />}
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 border border-slate-100">
-                            <Clock size={16} />
+
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+                            <MapPin size={20} />
                           </div>
                           <div>
-                            <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">Identifier</p>
-                            <p className="text-[10px] font-mono text-slate-400">{order.userId}</p>
+                            <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-tight">Delivery Location</p>
+                            <p className="text-sm font-black text-indigo-700">{order.tableNumber}</p>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions Section */}
+                    <div className="lg:col-span-1 flex flex-col justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Manage Status</h4>
+                        <div className="grid grid-cols-1 gap-2">
+                          <button 
+                            onClick={() => onUpdateOrderStatus(order.id, OrderStatus.PREPARING)}
+                            disabled={order.status === OrderStatus.PREPARING || order.status === OrderStatus.DELIVERED}
+                            className={`px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                              order.status === OrderStatus.PREPARING 
+                              ? 'bg-indigo-600 text-white cursor-default'
+                              : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 shadow-sm'
+                            }`}
+                          >
+                            <Clock size={16} /> Mark as Preparing
+                          </button>
+                          <button 
+                            onClick={() => onUpdateOrderStatus(order.id, OrderStatus.DELIVERED)}
+                            disabled={order.status === OrderStatus.DELIVERED}
+                            className={`px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                              order.status === OrderStatus.DELIVERED
+                              ? 'bg-emerald-600 text-white cursor-default'
+                              : 'bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-50 shadow-sm'
+                            }`}
+                          >
+                            <CheckCircle size={16} /> Mark as Delivered
+                          </button>
+                          <button 
+                            onClick={() => onUpdateOrderStatus(order.id, OrderStatus.CANCELLED)}
+                            disabled={order.status === OrderStatus.CANCELLED || order.status === OrderStatus.DELIVERED}
+                            className={`px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                              order.status === OrderStatus.CANCELLED
+                              ? 'bg-red-600 text-white cursor-default'
+                              : 'bg-white text-red-600 border border-red-200 hover:bg-red-50 shadow-sm'
+                            }`}
+                          >
+                            <X size={16} /> Cancel Order
+                          </button>
                         </div>
                       </div>
                     </div>
