@@ -107,6 +107,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ menuItems, orders, onUp
                     <div>
                       <div className="flex items-center gap-3 mb-1">
                         <span className="text-xl font-bold text-slate-900">Order #{order.id.split('-').pop()}</span>
+                        <span className="text-slate-400 font-medium">|</span>
+                        <span className="text-slate-700 font-semibold">{order.userName || 'Guest'}</span>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${statusColors[order.status]}`}>
                           {statusIcons[order.status]} {order.status}
                         </span>
@@ -169,27 +171,25 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ menuItems, orders, onUp
                             <UserIcon size={16} />
                           </div>
                           <div>
-                            <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">Name</p>
+                            <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">Full Name</p>
                             <p className="text-sm font-bold text-slate-900">{order.userName || 'Guest Customer'}</p>
                           </div>
                         </div>
-                        {order.userEmail && (
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 border border-slate-100">
-                              <Mail size={16} />
-                            </div>
-                            <div>
-                              <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">Email</p>
-                              <p className="text-sm font-medium text-slate-600">{order.userEmail}</p>
-                            </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 border border-slate-100">
+                            <Mail size={16} />
                           </div>
-                        )}
+                          <div>
+                            <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">Email Address</p>
+                            <p className="text-sm font-medium text-slate-600">{order.userEmail || 'No email provided'}</p>
+                          </div>
+                        </div>
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 border border-slate-100">
                             <Clock size={16} />
                           </div>
                           <div>
-                            <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">User ID</p>
+                            <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">Identifier</p>
                             <p className="text-[10px] font-mono text-slate-400">{order.userId}</p>
                           </div>
                         </div>

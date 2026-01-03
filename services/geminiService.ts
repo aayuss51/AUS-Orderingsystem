@@ -29,3 +29,5 @@ export const generateMenuItemImage = async (name: string, description: string): 
   } catch (error) {
     console.error("Image Generation Error:", error);
     return null;
+  }
+};
